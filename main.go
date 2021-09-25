@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"time"
 
+	"github.com/gorilla/mux"
 	"github.com/harshq/service/handlers"
 	"github.com/joho/godotenv"
 )
@@ -23,10 +24,20 @@ func main() {
 	}
 
 	// new servermuliplexer
-	sm := http.NewServeMux()
+	sm := mux.NewRouter()
 
-	// handlers
-	sm.Handle("/", handlers.NewProducts(l))
+	ph := handlers.NewProducts(l)
+
+	getRouter := sm.Methods(http.MethodGet).Subrouter()
+	getRouter.HandleFunc("/products", ph.GetProducts)
+
+	postRouter := sm.Methods(http.MethodPost).Subrouter()
+	postRouter.Use(ph.MiddlewareProductValidation)
+	postRouter.HandleFunc("/products", ph.AddProduct)
+
+	putRouter := sm.Methods(http.MethodPut).Subrouter()
+	putRouter.Use(ph.MiddlewareProductValidation)
+	putRouter.HandleFunc("/products/{id:[0-9]+}", ph.EditProduct)
 
 	// server instance
 	s := &http.Server{
