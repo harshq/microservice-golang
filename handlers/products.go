@@ -2,6 +2,7 @@ package handlers
 
 import (
 	"context"
+	"fmt"
 	"log"
 	"net/http"
 	"strconv"
@@ -30,12 +31,7 @@ func (p *Products) GetProducts(rw http.ResponseWriter, r *http.Request) {
 
 func (p *Products) AddProduct(rw http.ResponseWriter, r *http.Request) {
 	p.l.Println("Handle POST product")
-	pr := &data.Product{}
-	err := pr.FromJSON(r.Body)
-	if err != nil {
-		http.Error(rw, "Invalid JSON data", http.StatusBadRequest)
-		return
-	}
+	pr := r.Context().Value(KeyProduct{}).(*data.Product)
 
 	data.AddProduct(pr)
 }
@@ -71,6 +67,12 @@ func (p *Products) MiddlewareProductValidation(next http.Handler) http.Handler {
 		err := pr.FromJSON(r.Body)
 		if err != nil {
 			http.Error(rw, "Invalid JSON data", http.StatusBadRequest)
+			return
+		}
+
+		err = pr.Validate()
+		if err != nil {
+			http.Error(rw, fmt.Sprintf("Validation failed: %s", err), http.StatusBadRequest)
 			return
 		}
 
