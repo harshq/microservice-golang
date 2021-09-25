@@ -1,3 +1,17 @@
+// Package classification for Product API
+//
+// Documentation for Product API
+//
+// Schemes: http
+// BasePath: /
+// Version: 1.0.0
+//
+// Consumes:
+// - application/json
+//
+// Produces:
+// - application/json
+// swagger:meta
 package handlers
 
 import (
@@ -5,9 +19,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"strconv"
 
-	"github.com/gorilla/mux"
 	"github.com/harshq/service/data"
 )
 
@@ -17,45 +29,6 @@ type Products struct {
 
 func NewProducts(l *log.Logger) *Products {
 	return &Products{l}
-}
-
-func (p *Products) GetProducts(rw http.ResponseWriter, r *http.Request) {
-	p.l.Println("Handle GET products")
-	lp := data.GetProducts()
-	err := lp.ToJSON(rw)
-	if err != nil {
-		http.Error(rw, "Invalid JSON data", http.StatusInternalServerError)
-		return
-	}
-}
-
-func (p *Products) AddProduct(rw http.ResponseWriter, r *http.Request) {
-	p.l.Println("Handle POST product")
-	pr := r.Context().Value(KeyProduct{}).(*data.Product)
-
-	data.AddProduct(pr)
-}
-
-func (p *Products) EditProduct(rw http.ResponseWriter, r *http.Request) {
-	p.l.Println("Handle PUT product")
-
-	vars := mux.Vars(r)
-
-	id, err := strconv.Atoi(vars["id"])
-	if err != nil {
-		http.Error(rw, "Invalid parameter", http.StatusInternalServerError)
-		return
-	}
-
-	pr := r.Context().Value(KeyProduct{}).(*data.Product)
-	pr.ID = id
-
-	err = data.UpdateProduct(pr)
-	if err != nil {
-		http.Error(rw, "Product not found", http.StatusNotFound)
-		return
-	}
-
 }
 
 type KeyProduct struct{}
