@@ -8,6 +8,7 @@ import (
 	"os/signal"
 	"time"
 
+	goHandler "github.com/gorilla/handlers"
 	"github.com/gorilla/mux"
 	"github.com/harshq/service/handlers"
 	"github.com/joho/godotenv"
@@ -38,6 +39,9 @@ func main() {
 	putRouter := sm.Methods(http.MethodPut).Subrouter()
 	putRouter.Use(ph.MiddlewareProductValidation)
 	putRouter.HandleFunc("/products/{id:[0-9]+}", ph.EditProduct)
+
+	// CORS
+	goHandler.CORS(goHandler.AllowedOrigins([]string{"http://localhost:9000"}))
 
 	// server instance
 	s := &http.Server{
